@@ -106,7 +106,7 @@ async def start_bot(bot: Bot) -> None:
             global_client=bot
         )  # TODO: Remove this if not using snakecore
         print(f"\nStarting bot ({bot.__class__.__name__})...")
-        await bot.start(bot.botconfig["authentication"]["token"])
+        await bot.start(bot._botconfig["authentication"]["token"])
     except KeyboardInterrupt:
         pass
     finally:
