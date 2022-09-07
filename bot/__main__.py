@@ -120,7 +120,7 @@ async def close_bot(bot: Bot) -> None:
 
 
 # fmt: off
-@click.command(add_help_option=False)
+@click.group(invoke_without_command=True, add_help_option=False)
 @click.option("--config", "--config-path", "config_path", default="./config.py",
     show_default=True, type=click.Path(resolve_path=True),
     help="A path to the 'config.py' file to use for both configuring bot "
@@ -160,12 +160,14 @@ async def close_bot(bot: Bot) -> None:
     help="Ignore extra (non-default) extensions at startup.")
 @click.option("--log-level", "--bot-log-level", "log_level",
     show_default=True, type=click.Choice(
-        ('NOTSET', 'DEBUG', 'INFO', 'WARNING', 'WARN', 'ERROR', 'FATAL', 'CRITICAL')),
+        ('NOTSET', 'DEBUG', 'INFO', 'WARNING', 'WARN', 'ERROR', 'FATAL', 'CRITICAL'), case_sensitive=False),
     help="The log level to use for the bot's default logging system.")
 # TODO: Add more CLI options specific to your application.
 @click.help_option("-h", "--help", "help")
+@click.pass_context
 # fmt: on
 def main(
+    ctx: click.Context,
     config_path: str,
     botconfig_path: str,
     launchconfig_path: str,
@@ -180,27 +182,31 @@ def main(
 ):
     """Launch this Discord bot application."""
 
+    if ctx.invoked_subcommand is not None:
+        return
+
     click.echo("Searching for configuration files...")
     config_loading_failed = False
 
     if config_path is not None:
         # load mandatory botconfig data and optional launchconfig data
         try:
-            config = import_module_from_path("config", config_path)
+            config_module = import_module_from_path("config", config_path)
             try:
-                botconfig.update(config.botconfig)
+                botconfig.update(config_module.botconfig)
             except AttributeError:
-                click.echo(
+                click.secho(
                     "  Could not find the 'botconfig' dictionary in the 'botconfig.py' "
                     f"file at '{botconfig_path}'.",
                     err=True,
+                    fg="red",
                 )
                 raise click.Abort()
             else:
-                click.echo(f"  Successfully loaded 'botconfig' from {config_path}")
+                click.secho(f"  Successfully loaded 'botconfig' from {config_path}")
 
             try:
-                launchconfig.update(config.launchconfig)
+                launchconfig.update(config_module.launchconfig)
             except AttributeError:
                 click.echo(
                     "  No 'launchconfig' dictionary found in 'config.py', using "
@@ -214,32 +220,36 @@ def main(
     if config_path is None or config_loading_failed:
         # load mandatory botconfig data
         try:
-            botconfig = import_module_from_path("botconfig", botconfig_path)
+            botconfig_module = import_module_from_path("botconfig", botconfig_path)
             try:
-                botconfig.update(botconfig.botconfig)
+                botconfig.update(botconfig_module.botconfig)
             except AttributeError:
-                click.echo(
+                click.secho(
                     "  Could not find the 'botconfig' dictionary in the 'botconfig.py' "
                     f"file at '{botconfig_path}'.",
                     err=True,
+                    fg="red",
                 )
                 raise click.Abort()
         except ImportError:
-            click.echo(f"  Could not find a 'botconfig.py' file.", err=True)
+            click.secho(f"  Could not find a 'botconfig.py' file.", err=True, fg="red")
             raise click.Abort()
         else:
             click.echo(f"  Successfully loaded 'botconfig' from {botconfig_path}")
 
         # load optional launchconfig data
         try:
-            launchconfig = import_module_from_path("launchconfig", launchconfig_path)
+            launchconfig_module = import_module_from_path(
+                "launchconfig", launchconfig_path
+            )
             try:
-                launchconfig.update(launchconfig.launchconfig)
+                launchconfig.update(launchconfig_module.launchconfig)
             except AttributeError:
-                click.echo(
+                click.secho(
                     "  Could not find the 'launchconfig' dictionary in the "
                     f"'launchconfig.py' file at '{launchconfig_path}'.",
                     err=True,
+                    fg="red",
                 )
                 raise click.Abort()
         except ImportError:
@@ -251,6 +261,7 @@ def main(
             click.echo(f"  Successfully loaded 'launchconfig' from {launchconfig_path}")
 
     click.echo("Reading configuration data...")
+
     # -------------------------------------------------------------------------
     # botconfig.authentication
     ## botconfig.authentication.client_id
@@ -270,11 +281,12 @@ def main(
             or not isinstance(botconfig["authentication"]["token"], str)
         )
     ):
-        click.echo(
+        click.secho(
             "  botconfig error: 'authentication' variable must be of type 'dict' "
             "and must at least contain 'client_id' of type 'int' and "
             "'token' of type 'str'",
             err=True,
+            fg="red",
         )
         raise click.Abort()
 
@@ -306,10 +318,11 @@ def main(
             intents_fail = True
 
         if intents_fail:
-            click.echo(
+            click.secho(
                 "  botconfig error: 'intents' variable must be of type 'int' or 'str' (STRING) "
                 "and must be interpretable as an integer.",
                 err=True,
+                fg="red",
             )
             raise click.Abort()
 
@@ -332,10 +345,11 @@ def main(
         isinstance(launchconfig["command_prefix"], (list, tuple))
         and not all(isinstance(pfx, str) for pfx in launchconfig["command_prefix"])
     ):
-        click.echo(
+        click.secho(
             "  launchconfig error: Optional 'command_prefix' variable must be of type "
             "'str', of type 'list'/'tuple' containing strings or just None.",
             err=True,
+            fg="red",
         )
         raise click.Abort()
 
@@ -343,9 +357,10 @@ def main(
         launchconfig["mention_as_command_prefix"] = mention_as_command_prefix
 
     if not isinstance(launchconfig["mention_as_command_prefix"], bool):
-        click.echo(
+        click.secho(
             "  launchconfig error: 'mention_as_command_prefix' variable must be of type 'bool'.",
             err=True,
+            fg="red",
         )
         raise click.Abort()
 
@@ -365,9 +380,10 @@ def main(
     elif launchconfig["mention_as_command_prefix"]:
         final_prefix = commands.when_mentioned
     else:
-        click.echo(
+        click.secho(
             "  launchconfig error: 'mention_as_command_prefix' variable must be True if 'command_prefix' is None.",
             err=True,
+            fg="red",
         )
         raise click.Abort()
 
@@ -375,10 +391,11 @@ def main(
     # launchconfig.extensions
 
     if not isinstance(launchconfig["extensions"], (list, tuple)):
-        click.echo(
+        click.secho(
             "  launchconfig error: 'exts' variable must be a container of type 'list'/'tuple' "
             "containing dictionaries that specify parameters for the extensions to load.",
             err=True,
+            fg="red",
         )
         raise click.Abort()
 
@@ -386,10 +403,11 @@ def main(
         isinstance(ext_dict, dict) and "name" in ext_dict
         for ext_dict in launchconfig["extensions"]
     ):
-        click.echo(
+        click.secho(
             "  launchconfig error: The objects in the 'exts' variable container must be of type 'dict' "
             "and must at least contain the 'name' key mapping to the string name of an extension to load.",
             err=True,
+            fg="red",
         )
         raise click.Abort()
 
@@ -408,9 +426,10 @@ def main(
         launchconfig["log_level"] is not None
         and launchconfig["log_level"] not in LOG_LEVEL_NAMES
     ):
-        click.echo(
+        click.secho(
             "  launchconfig error: 'log_level' variable must be a valid log level name of type 'str' or None.",
             err=True,
+            fg="red",
         )
         raise click.Abort()
 
@@ -446,8 +465,8 @@ def main(
     # pass configuration data to bot instance
     bot = Bot(final_prefix, intents=discord.Intents(botconfig["intents"]))
 
-    bot.botconfig = botconfig
-    bot.launchconfig = launchconfig
+    bot._botconfig = botconfig
+    bot._launchconfig = launchconfig
 
     if (
         launchconfig["log_level"] is not None
