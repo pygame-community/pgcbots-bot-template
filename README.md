@@ -19,9 +19,7 @@ If having separate configuration files is not desirable, a single `config.py` fi
 
 
 ### `botconfig.py`
-This file is meant to hold the configuration settings, credentials and API endpoints of the bot application. Creating this file is mandatory and all data must be stored within a dictionary called `botconfig`. `"client_id"` and `"token"` are meant to be mandatory, whilst others are fully up to the implementation. For projects that use hosting solutions based on ephemeral file systems, credentials stored within the `"authentication"` dictionary like `"client_id"` and `"token"` can be turned into uppercase environment variables prefixed with `AUTH_` (e.g. `AUTH_CLIENT_ID` and `AUTH_TOKEN`) instead. The `botconfig.py` (excluding credentials and sensitive information) file can then be added to the project's Git repository to preserve it in those cases. As this file is a Python file, those credentials can be loaded into the `botconfig` dictionary during startup.
-
-When loaded, bot applications should only need to parse the `botconfig` dictionary within the file.
+This file is meant to hold all essential configuration settings of the bot application, such as credentials and API endpoints. Creating this file is mandatory and all data must be stored within a dictionary called `botconfig`. `"client_id"` and `"token"` within `"authentication"` are mandatory. If using hosting solutions based on ephemeral file systems, credentials stored within the `"authentication"` dictionary like `"client_id"` and `"token"` can be turned into uppercase environment variables prefixed with `AUTH_` (e.g. `AUTH_CLIENT_ID` and `AUTH_TOKEN`) instead. As this file is a Python file, those credentials can be loaded into the `botconfig` dictionary during startup via `os.environ`.
 
 #### Example code for ` botconfig.py` 
 ```py
@@ -31,27 +29,14 @@ botconfig = {
         "token": "...",
         "...": ...
     },
-    "databases": {
-        "a_database": {
-            "engine": "sqlite",
-            "library": "aiosqlite",
-            "uri": "file:///path/to/a_database.db",
-            "connection_arguments": {},  # arguments to pass to aiosqlite.connect() (DB-API 2.0)
-        },
-        {"...": ...} # other databases
-    },
     "intents": 0b1100011111111011111101 # https://discord.com/developers/docs/topics/gateway#list-of-intents
 }
 ```
 
 ### `launchconfig.py`
-This file is meant to customize the launching/startup process of the bot application. Creating this file is optional but recommended. All data must be stored within a dictionary called `launchconfig`. 
+This file is meant to customize the launching/startup process of the bot application using optional configuration settings. Creating this file is optional but recommended. All data must be stored within a dictionary called `launchconfig`. 
 
 For the dictionaries within the `"extensions"` list, the `"name"` and `"package"` keys match the names of the `name` and `package` arguments in the [`discord.ext.commands.Bot.load_extension`](https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#discord.ext.commands.Bot.load_extension) method and the values are meant to be forwarded to it, during startup. `"config"` (only supported with `snakecore`) can be used as a way to provide keyword arguments to extensions while they load, if supported. 
-
-Depending on the desired workflow, this file may also be added to the Git repository of a bot project.
-
-When loaded, bot applications should only need to parse the `launchconfig` dictionary within the file.
 
 #### Example code for `launchconfig.py` 
 ```py
@@ -77,16 +62,23 @@ launchconfig = {
             "name": "global_extension" # globally installed Python packages can be loaded as extensions
         }
     ],
+    "databases": [
+        {
+            "name": "a_database",
+            "url": "sqlite+aiosqlite:///path/to/a_database.db",
+            "connect_args": {},  # arguments to pass to aiosqlite.connect() from sqlalchemy
+        },
+        {"...": ...} # other databases
+    ],
+    "main_database_name": "a_database"
 }
 ```
 
-
 ## CLI
 The CLI is used to launch the bot application, whilst also allowing for selective overriding of config specified inside `config.py` or `botconfig.py` and `launchconfig.py` using command line options.
-For some simple bot applications without extensions, the CLI can be used to fully replace `launchconfig.py` files.
 
 ```
-Usage: python -m bot [OPTIONS]
+Usage: python -m pgbot [OPTIONS]
 
   Launch this Discord bot application.
 
