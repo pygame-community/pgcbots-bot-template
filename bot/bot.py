@@ -16,11 +16,10 @@ _logger = logging.getLogger(__name__)
 class TemplateBot(snakecore.commands.Bot):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self._botconfig: dict = {}
-        self._launchconfig: dict = {}
+        self._config: dict = {}
 
     async def setup_hook(self) -> None:
-        for ext_dict in self._launchconfig["extensions"]:
+        for ext_dict in self._config["extensions"]:
             try:
                 await self.load_extension_with_config(
                     # TODO: Rename this to `load_extension` if not using snakecore
