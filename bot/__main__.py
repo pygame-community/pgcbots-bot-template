@@ -194,13 +194,15 @@ def main(
             except AttributeError:
                 click.secho(
                     "  Could not find 'config' data dictionary in 'config.py' "
-                    f"file at '{config_path}'.",
+                    f"file at path '{config_path}'.",
                     err=True,
                     fg="red",
                 )
                 raise click.Abort()
             else:
-                click.secho(f"  Successfully loaded 'config' data from {config_path}")
+                click.secho(
+                    f"  Successfully loaded 'config' data from path '{config_path}'"
+                )
         except ImportError:
             if localconfig_path and os.path.exists(localconfig_path):
                 click.secho(
@@ -212,7 +214,7 @@ def main(
                 click.secho(
                     f"  Could not find 'config.py' file"
                     + (f" at '{config_path}'" if config_path else "")
-                    + f" or 'localconfig.py' file at {localconfig_path}",
+                    + f" or 'localconfig.py' file at path '{localconfig_path}'",
                     err=True,
                     fg="red",
                 )
@@ -231,7 +233,7 @@ def main(
             except AttributeError:
                 click.secho(
                     "  Could not find the 'config' data dictionary in the "
-                    f"'localconfig.py' file at '{localconfig_path}'.",
+                    f"'localconfig.py' file at path '{localconfig_path}'.",
                     err=True,
                     fg="red",
                 )
@@ -254,7 +256,6 @@ def main(
 
     # -------------------------------------------------------------------------
     # config.authentication
-    ## config.authentication.client_id
     ## config.authentication.token
 
     if (

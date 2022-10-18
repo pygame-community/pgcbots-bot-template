@@ -20,34 +20,25 @@ For easier overriding of configuration data or local development or testing, a `
 ### `config.py`
 This file is meant to hold all essential configuration settings of the bot application, such as credentials and API endpoints. Creating this file is mandatory if `localconfig.py` doesn't exist, all data must be stored within a dictionary called `config`, meaning that it would be accessible as `config.config`. `"token"` within `"authentication"` is mandatory, but `"authentication"` can be expanded as needed to hold more related data. If using hosting solutions based on ephemeral file systems, credentials stored within the `"authentication"` dictionary like `"token"` can be turned into uppercase environment variables prefixed with `AUTH_` (e.g. `AUTH_TOKEN`) instead. As this file is a Python file, those credentials can be loaded into the `config` dictionary during startup via `os.environ`.
 
-For the dictionaries within the `"extensions"` list, the `"name"` and `"package"` keys match the names of the `name` and `package` arguments in the [`discord.ext.commands.Bot.load_extension`](https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#discord.ext.commands.Bot.load_extension) method and the values are meant to be forwarded to it, during startup. The `"config"` key (not to) inside an extension dictionary (only supported with `snakecore`) can be used as a way to provide keyword arguments to extensions while they load, if supported. 
+For the dictionaries within the `"extensions"` list, the `"name"` and `"package"` keys match the names of the `name` and `package` arguments in the [`discord.ext.commands.Bot.load_extension`](https://discordpy.readthedocs.io/en/latest/ext/commands/api.html#discord.ext.commands.Bot.load_extension) method and the values are meant to be forwarded to it, during startup. The `"config"` key (not to be confused with the `config` dictionary or `config.py`) inside an extension dictionary (only supported with `snakecore`) can be used as a way to provide keyword arguments to extensions while they load, if supported. 
 
 #### Example code for `config.py`
 ```py
 config = {
     "authentication": {
-        "client_id": 1234567891011121314,
         "token": "...",
         "...": ...
     },
     "intents": 0b1100011111111011111101, # https://discord.com/developers/docs/topics/gateway#list-of-intents
-    "databases": [
-        {
-            "name": "a_database",
-            "url": "sqlite+aiosqlite:///path/to/a_database.db",
-            "connect_args": {},  # arguments to pass to aiosqlite.connect() from sqlalchemy
-        },
-        {"...": ...} # other databases
-    ],
-    "main_database_name": "a_database",
     "extensions": [
         {
-        "name": "bot.exts.bundled_extension",
-        "config": {
-            "a": 1,
-            "b": 2
+            "name": "bot.exts.bundled_extension",
+            "config": {
+                "a": 1,
+                "b": 2
+            }
         }
-    }],
+    ],
 }
 ```
 
@@ -56,7 +47,7 @@ This file is meant to override any data specified in the `config` dictionary ins
 
 #### Example code for `localconfig.py` 
 ```py
-localconfig = {
+config = {
     "command_prefix": "!",  # can also be a list of prefixes
     "mention_as_command_prefix": True, # whether mentions may count as command prefixes
     "log_level": "INFO", # omission disables logging entirely
@@ -81,7 +72,7 @@ localconfig = {
 ```
 
 ## CLI
-The CLI is used to launch the bot application, whilst also allowing for selective overriding of config specified inside `config.py` or `localconfig.py` using command line options.
+The CLI is used to launch the bot application, whilst also allowing for selective overriding of the `config` dictionary inside `config.py` or `localconfig.py` using command line options.
 
 ```
 Usage: python -m bot [OPTIONS] COMMAND [ARGS]...
