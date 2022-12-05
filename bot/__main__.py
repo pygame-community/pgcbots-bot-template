@@ -9,7 +9,7 @@ import os
 import os.path
 import sys
 import types
-from typing import Any, Optional
+from typing import Any
 
 import click
 import discord
@@ -81,7 +81,7 @@ def setup_logging(log_level: int = logging.INFO) -> None:
     discord.utils.setup_logging(level=log_level)
 
 
-def clear_logging_handlers(logger: Optional[logging.Logger] = None):
+def clear_logging_handlers(logger: logging.Logger | None = None):
     if logger is None:
         logger = logging.getLogger()
 
@@ -166,16 +166,16 @@ async def close_bot(bot: Bot) -> None:
 # fmt: on
 def main(
     ctx: click.Context,
-    config_path: Optional[str],
-    localconfig_path: Optional[str],
+    config_path: str | None,
+    localconfig_path: str | None,
     command_prefix: tuple[str, ...],
     mention_as_command_prefix: bool,
-    intents: Optional[int],
+    intents: int | None,
     ignore_extension: tuple[str, ...],
     ignore_all_extensions: bool,
     ignore_default_extensions: bool,
     ignore_extra_extensions: bool,
-    log_level: Optional[str],
+    log_level: str | None,
 ):
     """Launch this Discord bot application."""
 

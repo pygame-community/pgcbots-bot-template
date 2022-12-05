@@ -1,6 +1,6 @@
 # Bot
 A template repository that defines the structure for current and future Python bot projects using `discord.py`.
-For ease of use, a CLI has been provided to customize bot startup and functioning. Supports Python `3.9+`. 
+For ease of use, a CLI has been provided to customize bot startup and functioning. Supports Python `3.10+`. 
 
 ## Setup
 1. Set up a virtual environment using your desired tool (e.g. `virtualenv`, `venv`, etc.).
